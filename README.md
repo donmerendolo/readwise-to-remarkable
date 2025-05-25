@@ -1,5 +1,7 @@
 # Readwise to reMarkable
 
+![readwise-to-remarkable](image.png)
+
 Automatically syncs documents from Readwise Reader to your reMarkable tablet. The tool looks for documents tagged with "remarkable" in specific locations (new, later, shortlist) and uploads them to your reMarkable cloud using rmapi.
 
 ## Installation
