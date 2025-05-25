@@ -2,13 +2,13 @@
 
 ![readwise-to-remarkable](image.png)
 
-Automatically syncs documents from Readwise Reader to your reMarkable tablet. The tool looks for documents tagged with "remarkable" in specific locations (new, later, shortlist) and uploads them to your reMarkable cloud using rmapi.
+Automatically sync documents from Readwise Reader to your reMarkable tablet. The tool looks for documents tagged with "remarkable" in specific locations (new, later, shortlist) and uploads them to your reMarkable cloud using rmapi.
 
 ## Installation
 
-You need [rmapi](https://github.com/ddvk/rmapi) to upload files to your reMarkable.
+You need [rmapi](https://github.com/ddvk/rmapi) installed to upload files to your reMarkable.
 
-Also, you need a [Readwise access token](https://readwise.io/access_token) to authenticate with the Readwise API.
+And a [Readwise access token](https://readwise.io/access_token) to authenticate with the Readwise API.
 
 1. Clone this repository:
 ```bash
