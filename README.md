@@ -4,6 +4,9 @@
 
 Automatically sync documents from Readwise Reader to your reMarkable tablet. The tool looks for documents tagged with "remarkable" in specific locations (new, later, shortlist) and uploads them to your reMarkable cloud using rmapi.
 
+> [!NOTE]
+> Uploading an EPUB file directly to reMarkable is better than using this script, as it preserves the original formatting and layout.
+
 ## Installation
 
 You need [rmapi](https://github.com/ddvk/rmapi) installed to upload files to your reMarkable.
@@ -41,7 +44,7 @@ tag = remarkable
 1. Add tag `remarkable` to documents in Readwise Reader that you want to sync.
 2. Run the tool:
 ```bash
-python readwise_to_remarkable.py
+python sync.py
 ```
 3. Profit!
 
