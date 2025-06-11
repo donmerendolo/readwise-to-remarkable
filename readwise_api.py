@@ -80,7 +80,7 @@ class ReadwiseAPI:
             page_cursor = None
 
             while True:
-                params = {"location": location, "withHtmlContent": "true"}
+                params = {"location": location, "tag": tag, "withHtmlContent": "false"}
 
                 if page_cursor:
                     params["pageCursor"] = page_cursor
