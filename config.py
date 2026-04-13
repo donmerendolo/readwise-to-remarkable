@@ -36,6 +36,9 @@ folder = Readwise
 [sync]
 locations = new,later,shortlist
 tag = remarkable
+
+[highlights]
+enabled = false
 """
         with Path.open(self.config_path, "w") as f:
             f.write(default_config)
@@ -68,3 +71,7 @@ tag = remarkable
     @property
     def tag(self) -> str:
         return self.config.get("sync", "tag", fallback="remarkable")
+
+    @property
+    def highlight_sync_enabled(self) -> bool:
+        return self.config.getboolean("highlights", "enabled", fallback=False)

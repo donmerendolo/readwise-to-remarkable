@@ -7,5 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "bs4>=0.0.2",
     "ebooklib>=0.19",
+    "pymupdf>=1.25.0",
     "requests>=2.32.3",
+    "rmscene>=0.6.0",
 ]

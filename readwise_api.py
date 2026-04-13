@@ -71,8 +71,17 @@ class ReadwiseAPI:
         msg = "Max retries exceeded for Readwise API"
         raise Exception(msg)
 
-    def get_documents(self, locations: list[str], tag: str) -> list[dict]:
-        """Fetch documents with specified locations and tag."""
+    def get_documents(
+        self, locations: list[str], tag: str, skip_seen: bool = True
+    ) -> list[dict]:
+        """Fetch documents with specified locations and tag.
+
+        Args:
+            locations: Readwise Reader locations to fetch from.
+            tag: Tag to filter by ('*' for all).
+            skip_seen: If True, skip documents that have been opened/seen
+                       (first_opened_at is not null). Defaults to True.
+        """
         all_documents = []
 
         for location in locations:
@@ -80,7 +89,11 @@ class ReadwiseAPI:
             page_cursor = None
 
             while True:
-                params = {"location": location, "tag": tag, "withHtmlContent": "false"}
+                params = {"location": location, "withHtmlContent": "false"}
+
+                # Only filter by tag if one is specified
+                if tag and tag != "*":
+                    params["tag"] = tag
 
                 if page_cursor:
                     params["pageCursor"] = page_cursor
@@ -92,17 +105,23 @@ class ReadwiseAPI:
                 )
                 data = response.json()
 
-                # Filter documents by tag
                 for doc in data.get("results", []):
-                    doc_tags = doc.get("tags", {})
-                    if isinstance(doc_tags, dict):
-                        # Convert dict format to list for easier checking
-                        tag_list = list(doc_tags.keys())
-                    else:
-                        tag_list = doc_tags if isinstance(doc_tags, list) else []
+                    # If tag filtering is active, verify the tag exists
+                    if tag and tag != "*":
+                        doc_tags = doc.get("tags", {})
+                        if isinstance(doc_tags, dict):
+                            tag_list = list(doc_tags.keys())
+                        else:
+                            tag_list = doc_tags if isinstance(doc_tags, list) else []
 
-                    if tag in tag_list:
-                        all_documents.append(doc)
+                        if tag not in tag_list:
+                            continue
+
+                    # Skip seen documents (opened at least once)
+                    if skip_seen and doc.get("first_opened_at"):
+                        continue
+
+                    all_documents.append(doc)
 
                 page_cursor = data.get("nextPageCursor")
                 if not page_cursor:
@@ -120,3 +139,53 @@ class ReadwiseAPI:
             return data["results"][0].get("html_content", "")
 
         return ""
+
+    def get_document_raw_source_url(self, doc_id: str) -> str:
+        """Get a direct S3 URL to the raw source file of a document."""
+        params = {"id": doc_id, "withRawSourceUrl": "true"}
+        response = self._make_request("GET", f"{self.base_url}/list/", params=params)
+        data = response.json()
+
+        if data.get("results"):
+            return data["results"][0].get("raw_source_url", "")
+
+        return ""
+
+    def get_archived_document_ids(self) -> set[str]:
+        """Fetch all document IDs from the 'archive' location."""
+        archived_ids = set()
+        page_cursor = None
+
+        print("Checking for archived documents...")
+        while True:
+            params = {"location": "archive", "withHtmlContent": "false"}
+            if page_cursor:
+                params["pageCursor"] = page_cursor
+
+            response = self._make_request(
+                "GET",
+                f"{self.base_url}/list/",
+                params=params,
+            )
+            data = response.json()
+
+            for doc in data.get("results", []):
+                archived_ids.add(doc["id"])
+
+            page_cursor = data.get("nextPageCursor")
+            if not page_cursor:
+                break
+
+        return archived_ids
+
+    def get_document_location(self, doc_id: str) -> str | None:
+        """Get the current location of a specific document."""
+        params = {"id": doc_id}
+        response = self._make_request("GET", f"{self.base_url}/list/", params=params)
+        data = response.json()
+
+        if data.get("results"):
+            return data["results"][0].get("location", "")
+
+        return None
+

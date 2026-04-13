@@ -58,7 +58,12 @@ class RemarkableUploader:
             try:
                 os.chdir(file_path.parent)
                 cmd = [self.rmapi_path, "put", file_path.name, self.folder]
-                subprocess.run(cmd, capture_output=True, text=True, check=True)
+                result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+                if result.returncode != 0:
+                    if "already exists" in (result.stderr or ""):
+                        print(f"Already exists on reMarkable, skipping: {file_path.name}")
+                    else:
+                        result.check_returncode()  # raise for non-exists errors
             finally:
                 os.chdir(original_cwd)
 
@@ -67,6 +72,27 @@ class RemarkableUploader:
 
         except subprocess.CalledProcessError as e:
             print(f"Failed to upload {file_path.name}: {e}")
+            if e.stderr:
+                print(f"Error output: {e.stderr}")
+            return False
+
+    def delete_file(self, remote_name: str) -> bool:
+        """Delete a file from reMarkable."""
+        # reMarkable stores docs by title without extension
+        doc_name = Path(remote_name).stem
+        remote_path = f"{self.folder}/{doc_name}"
+        try:
+            print(f"Deleting {remote_path} from reMarkable...")
+            subprocess.run(
+                [self.rmapi_path, "rm", remote_path],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            print(f"Successfully deleted {remote_path}")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to delete {remote_path}: {e}")
             if e.stderr:
                 print(f"Error output: {e.stderr}")
             return False
