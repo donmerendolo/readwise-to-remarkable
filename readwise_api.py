@@ -39,6 +39,9 @@ class ReadwiseAPI:
         """Make a rate-limited request with exponential backoff on errors."""
         max_retries = 5
         base_delay = 2
+        # Default timeout so a stalled socket can't hang the whole sync loop.
+        # (connect, read) — Readwise normally responds in <2s.
+        kwargs.setdefault("timeout", (10, 60))
 
         for attempt in range(max_retries):
             self._rate_limit()
